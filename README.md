@@ -2,6 +2,9 @@
 
 **This is a WIP which for now includes a starter theme with local plugin for development purposes. Once ironed out it will be its own standalone plugin and these docs will be less abysmal**
 
+**View bush league demo here:**
+https://drive.google.com/file/d/1FVch2HbAWk1TEXph1katiNb1uuaBLSHf/view?usp=sharing
+
 To do: Purpose of plugin (groq > graphql)
 
 ## 🎂 Features
@@ -16,9 +19,9 @@ To do: Purpose of plugin (groq > graphql)
 
 
 ## 🧙 How it works
-This plugin mimics Gatsby's own method of extracting queries from components by using Babel's tools to parse files and traverse code to capture all queries found in files. By leveraging Gatsby's Node APIs and helpers, we are able to extract queries from files on demand then run them against all GraphQL nodes found in Gatsby's redux store. After queries are run we can either feed results into a page's context (page queries), or cache for later use within individual components (static queries).
+This plugin mimics Gatsby's own method of extracting queries from components by using Babel's tools to parse files and traverse code to capture all queries found in files. By leveraging Gatsby's Node APIs and helpers we are able to extract queries from files on demand then run them against all GraphQL nodes found in Gatsby's redux store. After queries are run we can either feed results into a page's context (page queries), or cache for later use within individual components (static queries).
 
-For now, during development all cache related to groq queries can be found in `.cache/groq` during development and `public/static/groq` in production. **Note: I have made some changes since last testing builds so they might be buggy**
+For now, all cache related to groq queries can be found in `.cache/groq` during development and `public/static/groq` in production. **Note: I have made some changes since last testing builds so they might be buggy**
 
 ###  Page Queries
 All page-level components with `groqQuery` exports will have their queries extracted and cached unprocessed as a hashed json file in the groq directory. The hash is based on the component's file path so it can always be associated with the page component. During bootstrap, whenever a page is created via `createPage` the plugin checks the cache to see if there is a page query related to its component. If there is, it then runs the query and replaces any variables within the query with values supplied in the page's context. The result will stored as the `data` property within `pageContext`.
