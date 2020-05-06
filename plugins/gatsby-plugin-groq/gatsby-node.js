@@ -1,14 +1,12 @@
 const axios = require( 'axios' );
-const parser = require( '@babel/parser' );
-const traverse = require( '@babel/traverse' ).default;
 const fs = require( 'fs' );
 const glob = require( 'glob' );
-const groq = require( 'groq-js' );
-const path = require( 'path' );
-const normalizePath = require( 'normalize-path' );
 const murmurhash = require( "babel-plugin-remove-graphql-queries/murmur" );
-//const { babelParseToAst } = require( 'gatsby/dist/utils/babel-parse-to-ast' );
-const { watchDirectory } = require( 'gatsby-page-utils' );
+const normalizePath = require( 'normalize-path' );
+const parser = require( '@babel/parser' );
+const path = require( 'path' );
+const traverse = require( '@babel/traverse' ).default;
+const { watch } = require( 'chokidar' );
 const{ runQuery } = require( './index' );
 
 // Will make all this prettier once built out as plugin.
@@ -40,12 +38,12 @@ exports.resolvableExtensions = async ( { graphql, actions, cache, getNodes, repo
   // For now watching all files to re-extract queries.
   // Right now there doesn't seem to be a way to watch for build updates using Gatsby's public node apis.
   // Created a ticket in github to explore option here.
-  fs.watch( `${ROOT}/src`, { recursive: true }, async ( event, trigger ) => {
+  const watcher = watch( `${ROOT}/src/**/*.js` );
+  watcher.on( 'change', async ( filePath ) => {
 
     reporter.info( 'Re-processing groq queries...' );
 
     // Get info for file that was changed.
-    const filePath = path.join( __dirname, '..', '..', 'src', trigger );
     const fileContents = fs.readFileSync( filePath, 'utf-8' );
 
     // Check if file has either page or static queries.
