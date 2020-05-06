@@ -21,7 +21,7 @@ exports.useGroqQuery = query => {
       return result;
     }
     catch( err ) {
-      console.wran( err );
+      console.warn( err );
     }
 
   }
