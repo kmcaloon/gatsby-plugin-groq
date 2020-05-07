@@ -15,7 +15,7 @@ Actual plugin can be found in `plugins/gatsby-plugin-groq`. `index.js` contains 
 - GROQ-based page queries with HMR
 - GROQ-based static queries with live reloads
 - Leverages GROQ's native functionality for advanced querying, node/document projections, joins (limited), etc.
-- String interpolation within queries, much more flexible than GraphQL fragments
+- String interpolation within queries, much more flexible than GraphQL fragments **(TO DO)**
 - GROQ explorer in browser during development at `locahost:8000/__groq` **(TO DO)**
 - Optimized for incremental builds on Cloud and OSS **(TO DO)**
 
@@ -46,6 +46,7 @@ Similar to page queries, all files are watched for changes and whenever there is
 ## ⌛ TO DO (random order)
 - Get rid of relative directories
 - Work on issues with joins
+- Need to execute code before traversing for GROQ fragments / string interpolation
 - GROQ explorer
 - Experiment with other data sources (WordPress)
 - Set up an option to auto-resolve references?
