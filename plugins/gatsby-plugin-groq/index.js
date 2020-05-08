@@ -87,14 +87,20 @@ exports.runQuery = async ( rawQuery, dataset, options = {} ) => {
     }
   }
 
-
   query = query.replace( /`/g, '', );
 
-  const parsedQuery = groq.parse( query );
-  const value = await groq.evaluate( parsedQuery, { dataset } );
-  const result = await value.get();
+  try {
 
-  return result;
+    const parsedQuery = groq.parse( query );
+    const value = await groq.evaluate( parsedQuery, { dataset } );
+    const result = await value.get();
+
+    return result;
+
+  }
+  catch( err ) {
+    console.error( err );
+  }
 
 }
 
