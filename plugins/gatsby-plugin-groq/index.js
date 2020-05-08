@@ -1,5 +1,5 @@
 const groq = require( 'groq-js' );
-const murmurhash = require( 'babel-plugin-remove-graphql-queries/murmur' );
+const murmurhash = require( './murmur' );
 
 /**
  * Hook to mimic Gatsby's static query.
@@ -12,7 +12,7 @@ const murmurhash = require( 'babel-plugin-remove-graphql-queries/murmur' );
  */
 exports.useGroqQuery = query => {
 
-  const hash = murmurhash( query, 'abc' );
+  const hash = murmurhash( query );
 
   if( process.env.NODE_ENV === 'development' ) {
 
@@ -75,7 +75,7 @@ exports.runQuery = async ( rawQuery, dataset, options = {} ) => {
 
       // Process string.
       if( typeof value === 'string' ) {
-        const search = `\\$\\{${name}\\}`;
+        const search = `\\$\\{(${name})\\}`;
         const pattern = new RegExp( search, 'g' );
         query = query.replace( pattern, value );
       }

@@ -1,7 +1,7 @@
 const axios = require( 'axios' );
 const fs = require( 'fs' );
 const glob = require( 'glob' );
-const murmurhash = require( "babel-plugin-remove-graphql-queries/murmur" );
+const murmurhash = require( './murmur' );
 const normalizePath = require( 'normalize-path' );
 const parser = require( '@babel/parser' );
 const path = require( 'path' );
@@ -14,7 +14,6 @@ const { runQuery } = require( './index' );
 // Will make all this prettier once built out as plugin.
 // Right now everything depends on specific directory structure.
 const ROOT = process.env.INIT_CWD;
-const GATSBY_HASH_SEED = 'abc';
 const GROQ_DIR = process.env.NODE_ENV === 'development' ? `${ROOT}/.cache/groq` : `${ROOT}/public/static/groq`;
 
 
@@ -150,7 +149,7 @@ exports.onCreatePage = async ( { actions, cache, getNodes, page, traceId } ) => 
 
   // Check for hashed page queries for this component.
   const componentPath = page.component;
-  const hash = murmurhash( componentPath, GATSBY_HASH_SEED );
+  const hash = murmurhash( componentPath );
   const queryFile = `${GROQ_DIR}/${hash}.json`;
 
   if( ! fs.existsSync( queryFile) ) {
@@ -503,7 +502,7 @@ async function cacheQueryResults( hash, data, type = 'page' ) {
         throw new Error( err );
       }
     } );
-    
+
   }
   else {
 
@@ -524,7 +523,7 @@ async function cacheQueryResults( hash, data, type = 'page' ) {
  * @return {number}
  */
 function hashQuery( query ) {
-  return murmurhash( query, GATSBY_HASH_SEED );
+  return murmurhash( query );
 }
 
 /**

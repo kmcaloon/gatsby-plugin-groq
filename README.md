@@ -51,7 +51,8 @@ Similar to page queries, all files are watched for changes and whenever there is
 - Experiment with other data sources (WordPress)
 - Set up an option to auto-resolve references?
 - Clean up spotty caching issues after running development
-- Error messaging (especially when there are Babel parsing errors)
+- Error messaging (especially when there are Babel parsing errors
+- Parsing options (i.e. allow ECMAScript proposals)
 - Performance optimizations
 - Improve docs
 - Provide recipe docs with heavy use of fragments
