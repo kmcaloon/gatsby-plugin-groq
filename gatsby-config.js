@@ -1,10 +1,17 @@
-require( 'dotenv' ).config({
+const path = require( 'path' );
+
+require( 'dotenv' ).config( {
   path: `.env`,
 } );
 
 module.exports = {
   plugins: [
-    'gatsby-plugin-groq',
+    {
+      resolve: 'gatsby-plugin-groq',
+      options: {
+        fragmentsDir: './src/fragments',
+      }
+    },
     {
       resolve: 'gatsby-source-sanity',
       options: {

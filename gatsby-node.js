@@ -21,7 +21,7 @@ exports.createPages = async ( { graphql, actions, cache, getNodes, reporter, tra
 
       const { id, _id } = post;
       const postPath = `/${post.slug.current}`;
-      const template = path.resolve( `./src/templates/Post.js` );
+      const template = path.resolve( `./src/templates/Page.js` );
 
       createPage( {
         path: postPath,

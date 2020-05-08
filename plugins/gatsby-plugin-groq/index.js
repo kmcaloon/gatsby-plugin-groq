@@ -43,12 +43,52 @@ exports.useGroqQuery = query => {
 /**
  * Groq query helper function.
  *
- * @param   {string}  query
+ * @param   {string}  rawQuery
  * @param   {map}     dataset
- * @param   {Object}  params // Need to do this...
+ * @param   {Object}  options
+ * @param   {Object}  options.fragments
+ * @param   {Object}  options.params
  * @return  {array}
  */
-exports.runQuery = async ( query, dataset, params ) => {
+exports.runQuery = async ( rawQuery, dataset, options = {} ) => {
+
+  const { fragments, params } = options;
+  let query = rawQuery;
+
+  // Check if query has fragment.
+  const hasFragment = query.includes( '${' );
+
+  if( hasFragment ) {
+
+    if( ! fragments || ! Object.keys( fragments ).length ) {
+      console.warn( 'GROQ query contains fragments but no fragment index found.' );
+      return;
+    }
+
+    // For now we are just going through all fragments and running
+    // simple string replacement.
+    for( let [ name, value ] of Object.entries( fragments ) ) {
+
+      if( ! query.includes( name ) ) {
+        continue;
+      }
+
+      // Process string.
+      if( typeof value === 'string' ) {
+        const search = `\\$\\{${name}\\}`;
+        const pattern = new RegExp( search, 'g' );
+        query = query.replace( pattern, value );
+      }
+      // Process function.
+      // else if( typeof value === 'function' ) {
+      //
+      // }
+
+    }
+  }
+
+
+  query = query.replace( /`/g, '', );
 
   const parsedQuery = groq.parse( query );
   const value = await groq.evaluate( parsedQuery, { dataset } );

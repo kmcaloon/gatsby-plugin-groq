@@ -5,9 +5,11 @@ const murmurhash = require( "babel-plugin-remove-graphql-queries/murmur" );
 const normalizePath = require( 'normalize-path' );
 const parser = require( '@babel/parser' );
 const path = require( 'path' );
+const gatsbyReporter = require( 'gatsby-cli/lib/reporter' );
 const traverse = require( '@babel/traverse' ).default;
 const { watch } = require( 'chokidar' );
-const{ runQuery } = require( './index' );
+const { runQuery } = require( './index' );
+
 
 // Will make all this prettier once built out as plugin.
 // Right now everything depends on specific directory structure.
@@ -18,33 +20,51 @@ const GROQ_DIR = process.env.NODE_ENV === 'development' ? `${ROOT}/.cache/groq` 
 
 /**
  * Here's where we extract and run all initial queries.
- * Also sets up a watcher to re-run queries during dev when files change.
+ * Also sets up a watcher to re-run queries during dev when files change.fcache
  *
  * Runs in right after schema creation and before createPages.
  */
-exports.resolvableExtensions = async ( { graphql, actions, cache, getNodes, reporter, traceId, store } ) => {
+exports.resolvableExtensions = async ( { graphql, actions, cache, getNodes, traceId, store }, plugin ) => {
+
+  const reporter = new Reporter();
 
   // Ugly.
   if( ! fs.existsSync( GROQ_DIR ) ) {
     fs.mkdirSync( GROQ_DIR );
   }
-  //await cache.set( 'page-query-paths', {} );
+
+  // Cache fragments.
+  const fragmentsDir = !! plugin.fragmentsDir ? path.join( ROOT, plugin.fragmentsDir ) : null;
+
+  if( !! fragmentsDir ) {
+    cacheFragments( fragmentsDir, cache );
+  }
 
   // Extract initial queries.
   const intitialNodes = getNodes();
-  extractQueries( { nodes: intitialNodes, reporter, traceId, cache } );
+
+  extractQueries( { nodes: intitialNodes, traceId, cache } );
 
 
   // For now watching all files to re-extract queries.
   // Right now there doesn't seem to be a way to watch for build updates using Gatsby's public node apis.
   // Created a ticket in github to explore option here.
   const watcher = watch( `${ROOT}/src/**/*.js` );
+
   watcher.on( 'change', async ( filePath ) => {
 
-    reporter.info( 'Re-processing groq queries...' );
+    // Recache if this was a change within fragments directory.
+    if( !! fragmentsDir && filePath.includes( fragmentsDir ) ) {
+
+      await cacheFragments( fragmentsDir, cache );
+
+      // TODO For now we need to force a refresh
+      axios.post( 'http://localhost:8000/__refresh' );
+
+    }
 
     // Get info for file that was changed.
-    const fileContents = fs.readFileSync( filePath, 'utf-8' );
+    const fileContents = fs.readFileSync( filePath, 'utf8' );
 
     // Check if file has either page or static queries.
     const pageQueryMatch = /export const groqQuery = /.exec( fileContents );
@@ -52,6 +72,8 @@ exports.resolvableExtensions = async ( { graphql, actions, cache, getNodes, repo
     if( ! pageQueryMatch && ! staticQueryMatch ) {
       return;
     }
+
+    reporter.info( 'Re-processing groq queries...' );
 
     // Get updated nodes to query against.
     const nodes = getNodes();
@@ -61,48 +83,55 @@ exports.resolvableExtensions = async ( { graphql, actions, cache, getNodes, repo
 
       const { deletePage, createPage } = actions;
       const { pages } = store.getState();
-      //const pageQueryPaths = await cache.get( 'page-query-paths' );
 
       // First we need to reprocess the page query.
-      const { fileHash: newHash, query: newQuery } = await processFilePageQuery( filePath, nodes );
-      const queryFile = `${GROQ_DIR}/${newHash}.json`;
+      const processedPageQuery = await processFilePageQuery( filePath, nodes, cache );
 
-      await cacheQueryResults( newHash, newQuery );
+      if( !! processedPageQuery ) {
 
-      // Update all paths using this page component.
-      // Is this performant or should we try to leverage custom cache?
-      for( let [ path, page ] of pages ) {
+        const { fileHash: newHash, query: newQuery } = processedPageQuery;
+        const queryFile = `${GROQ_DIR}/${newHash}.json`;
 
-        if( page.component !== filePath ) {
-          continue;
+        await cacheQueryResults( newHash, newQuery );
+
+        // Update all paths using this page component.
+        // Is this performant or should we try to leverage custom cache?
+        for( let [ path, page ] of pages ) {
+
+          if( page.component !== filePath ) {
+            continue;
+          }
+
+          reporter.info( `Updating path: ${page.path}` );
+
+          // Run query and inject into page context.
+          pageQueryToContext( {
+            actions,
+            cache,
+            file: queryFile,
+            nodes,
+            page
+          } );
+
         }
 
-        reporter.info( 'Updating path...' );
-        console.log( page.path );
-
-        // Run query and inject into page context.
-        pageQueryToContext( {
-          actions,
-          file: queryFile,
-          nodes,
-          page
-        } )
-
-
       }
+
     }
 
     // Static queries.
     if( ! staticQueryMatch ) {
-      return;
+      return reporter.success( 'Finished re-processing page queries' );
     }
 
     try {
 
       // Run query and save to cache.
       // Files using the static query will be automatically refreshed.
-      const { hash, json } = await processFileStaticQuery( filePath, nodes );
+      const { hash, json } = await processFileStaticQuery( filePath, nodes, plugin );
       await cacheQueryResults( hash, json );
+
+      return reporter.success( 'Finished re-processing queries' )
 
     }
     catch( err ) {
@@ -117,7 +146,7 @@ exports.resolvableExtensions = async ( { graphql, actions, cache, getNodes, repo
 /**
  * Inject page query results its page.
  */
-exports.onCreatePage = async ( { actions, cache, getNodes, page, reporter, traceId } ) => {
+exports.onCreatePage = async ( { actions, cache, getNodes, page, traceId } ) => {
 
   // Check for hashed page queries for this component.
   const componentPath = page.component;
@@ -128,30 +157,14 @@ exports.onCreatePage = async ( { actions, cache, getNodes, page, reporter, trace
     return;
   }
 
-  // let pageQueryPaths = await cache.get( 'page-query-paths' );
-  // if( ! pageQueryPaths ) {
-  //   pageQueryPaths = {};
-  // }
-  // const componentsPaths = pageQueryPaths[hash] ? [ ...pageQueryPaths[hash] ]  : [];
-  //
-  // if( ! componentsPaths.includes( page.path ) ) {
-  //
-  //   componentsPaths.push( page.path );
-  //   pageQueryPaths[hash] = [ ...componentsPaths ];
-  //
-  //   console.log( 'UPDATING PAGE QUERY CACHE', pageQueryPaths );
-  //
-  //   await cache.set( 'page-query-paths', pageQueryPaths );
-  //
-  // }
-
   // Run query and write to page context.
   pageQueryToContext( {
     actions,
+    cache,
     file: queryFile,
     getNodes,
     page,
-  } )
+  } );
 
 
 }
@@ -160,9 +173,11 @@ exports.onCreatePage = async ( { actions, cache, getNodes, page, reporter, trace
  * Extract page and static queries from all files.
  * Process and cache results.
  *
- * @param {Object} $0  Gatsby Node Helpers.
+ * @param {Object} $0       Gatsby Node Helpers.
  */
-async function extractQueries( { nodes, reporter, traceId, cache } ) {
+async function extractQueries( { nodes, traceId, cache } ) {
+
+  const reporter = new Reporter();
 
   reporter.info( 'Getting files for groq extraction...' );
 
@@ -192,8 +207,8 @@ async function extractQueries( { nodes, reporter, traceId, cache } ) {
   // Loop through files and look for queries to extract.
   for( let file of files ) {
 
-    const pageQuery = await processFilePageQuery( file, nodes );
-    const staticQuery = await processFileStaticQuery( file, nodes );
+    const pageQuery = await processFilePageQuery( file, nodes, cache );
+    const staticQuery = await processFileStaticQuery( file, nodes, cache );
 
     // Cache page query.
     // This will only contain a json file of unprocessed query.
@@ -211,20 +226,72 @@ async function extractQueries( { nodes, reporter, traceId, cache } ) {
 
   }
 
+  reporter.info( 'Finished getting files for query extraction' );
+
 
 }
+
+/**
+ * Cache fragments.
+ *
+ * @param   {string}  fragmentsDir
+ * @param   {Object}  cache
+ * @return  {bool}    if succesfully cached.
+ */
+async function cacheFragments( fragmentsDir, cache ) {
+
+  const reporter = new Reporter();
+  const index = path.join( fragmentsDir, 'index.js' );
+
+  if( !! fs.readFileSync( index ) ) {
+
+    delete require.cache[ require.resolve( index ) ];
+
+    fragments = require( index );
+
+    reporter.info( 'Caching fragments' );
+
+    await cache.set( 'groq-fragments', fragments );
+
+    return true;
+
+  }
+
+  return false;
+
+}
+
+/**
+ * Cache hash of query with fragments.
+ *
+ * @param   {number}  hash
+ * @param   {Object}  cache
+ */
+// async function cacheFragmentQueryHash( hash, cache ) {
+//
+//   const hashes = await cache.get( 'groq-fragment-queries' ) || [];
+//
+//   if( !! hashes[hash] ) {
+//     return;
+//   }
+//
+//   hashes.push( hash );
+//
+//   await cache.set( 'groq-fragment-queries', hashes );
+//
+// }
 
 /**
 * Run page query and update the related page via createPage.
 *
 * @param {Object} $0  Gatsby Node Helpers.
 */
-async function pageQueryToContext( { actions, file, getNodes, nodes, page, } ) {
+async function pageQueryToContext( { actions, cache, file, getNodes, nodes, page, } ) {
 
   const { createPage, deletePage, setPageData } = actions;
 
   // Get query content.
-  const content = fs.readFileSync( file, 'utf-8' );
+  const content = fs.readFileSync( file, 'utf8' );
   let { unprocessed: query } = JSON.parse( content );
 
   // Replace any variables within query with context values.
@@ -233,7 +300,7 @@ async function pageQueryToContext( { actions, file, getNodes, nodes, page, } ) {
     for( let [ key, value ] of Object.entries( page.context ) ) {
 
       const search = `\\$${key}`;
-      const pattern = new RegExp( search, 'i' );
+      const pattern = new RegExp( search, 'g' );
       query = query.replace( pattern, `"${value}"` );
 
     }
@@ -241,7 +308,8 @@ async function pageQueryToContext( { actions, file, getNodes, nodes, page, } ) {
 
   // Do the thing.
   const allNodes = nodes || getNodes();
-  const results = await runQuery( query, allNodes );
+  const fragments = await cache.get( 'groq-fragments' );
+  const results = await runQuery( query, allNodes, { fragments } );
 
   page.context.data = results;
 
@@ -255,13 +323,14 @@ async function pageQueryToContext( { actions, file, getNodes, nodes, page, } ) {
 /**
  * Extracts page query from file and returns its hash and unprocessed string.
  *
- * @param   {string}  file
- * @param   {map}     nodes`
- * @return  {Object}  fileHash and query
+ * @param   {string}   file
+ * @param   {map}      nodes
+ * @param   {Object}   cache
+ * @return  {Object}   fileHash and query
  */
-async function processFilePageQuery( file, nodes  ) {
+async function processFilePageQuery( file, nodes, cache ) {
 
-  const contents = fs.readFileSync( file, 'utf-8' );
+  const contents = fs.readFileSync( file, 'utf8' );
   const match = /export const groqQuery = /.exec( contents );
   if( ! match ) {
     return;
@@ -275,7 +344,12 @@ async function processFilePageQuery( file, nodes  ) {
       sourceFilename: file,
       sourceType: 'module',
     } );
+    // const fragments = await cache.get( 'groq-fragments' );
+    // let fragmentStrings = [];
+    // let fragmentFunctions = {};
     let pageQuery = null;
+    let queryStart = null;
+    let queryEnd = null;
 
     traverse( ast, {
       ExportNamedDeclaration: function( path ) {
@@ -283,7 +357,48 @@ async function processFilePageQuery( file, nodes  ) {
         const declarator = path.node.declaration.declarations[0];
 
         if( declarator.id.name === 'groqQuery' ) {
-          pageQuery = declarator.init.quasis[0].value.raw;
+
+          queryStart = declarator.init.start;
+          queryEnd = declarator.init.end;
+          pageQuery = contents.substring( queryStart, queryEnd );
+          //pageQuery = declarator.init.quasis[0].value.raw;
+
+          // if( declarator.init.expressions.length ) {
+          //   for( let expression of declarator.init.expressions ) {
+
+              // Process string variable
+              // if( expression.type === 'Identifier' ) {
+              //
+              //   const variableName = expression.name;
+              //   if( !! fragments[variableName] ) {
+              //     fragmentStrings[variableName] = fragments[variableName];
+              //   }
+              //
+              // }
+
+              // Process function variable.
+              // if( expression.type === 'CallExpression' ) {
+              //
+              //   const { callee: { name }, arguments } = expression;
+              //   let args = []
+              //
+              //   if( !! arguments.length ) {
+              //     for( let { value } of arguments ) {
+              //       args.push( value );
+              //     }
+              //   }
+
+
+              //   const functionName = fragments[name];
+              //
+              //   if( !! functionName ) {
+              //     fragmentFunctions[name] = functionName( ...args );
+              //   }
+              //
+              // }
+
+          //   }
+          // }
         }
 
       }
@@ -312,11 +427,12 @@ async function processFilePageQuery( file, nodes  ) {
  *
  * @param   {string}  file
  * @param   {map}     nodes
+ * @param   {Options} plugin
  * @return  {Object}  hash and query
  */
-async function processFileStaticQuery( file, nodes  ) {
+async function processFileStaticQuery( file, nodes, plugin  ) {
 
-  const contents = fs.readFileSync( file, 'utf-8' );
+  const contents = fs.readFileSync( file, 'utf8' );
   const match = /useGroqQuery/.exec( contents );
 
   if( ! match ) {
@@ -374,7 +490,8 @@ async function processFileStaticQuery( file, nodes  ) {
  */
 async function cacheQueryResults( hash, data, type = 'page' ) {
 
-  console.log( `Caching ${type} query...`, hash );
+  const reporter = new Reporter();
+  reporter.info( `Caching ${type} query: ${hash}` );
 
   const json = typeof data !== 'string' ? JSON.stringify( data ) : data;
 
@@ -386,6 +503,7 @@ async function cacheQueryResults( hash, data, type = 'page' ) {
         throw new Error( err );
       }
     } );
+    
   }
   else {
 
@@ -407,5 +525,16 @@ async function cacheQueryResults( hash, data, type = 'page' ) {
  */
 function hashQuery( query ) {
   return murmurhash( query, GATSBY_HASH_SEED );
+}
+
+/**
+ * Custom reporter.
+ */
+function Reporter() {
+
+  this.info = msg => gatsbyReporter.info( `[groq] ${msg}` );
+  this.warning = msg => gatsbyReporter.warning( `[groq] ${msg}` );
+  this.error = msg => gatsbyReporter.error( `[groq] ${msg}` );
+
 }
 

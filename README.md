@@ -57,6 +57,7 @@ Similar to page queries, all files are watched for changes and whenever there is
 - Provide recipe docs with heavy use of fragments
 - Incremental builds?
 - Allow for variables within static queries?
+- Use esm?
 - Helpers for real-time listening in client (Sanity only)
 - Tests
 - Proselytize everyone from GraphQL to Groq.
