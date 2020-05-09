@@ -1,5 +1,9 @@
 const groq = require( 'groq-js' );
 const murmurhash = require( './murmur' );
+const parser = require( '@babel/parser' );
+const traverse = require( '@babel/traverse' ).default;
+
+const ROOT = process.env.INIT_CWD;
 
 /**
  * Hook to mimic Gatsby's static query.
@@ -17,7 +21,7 @@ exports.useGroqQuery = query => {
   if( process.env.NODE_ENV === 'development' ) {
 
     try {
-      const result = require( `../../.cache/groq/${hash}.json` );
+      const result = require( `${ROOT}/.cache/groq/${hash}.json` );
       return result;
     }
     catch( err ) {
@@ -28,7 +32,7 @@ exports.useGroqQuery = query => {
   else {
 
     try {
-      const result = require( `../../public/static/groq/${hash}.json` );
+      const result = require( `${ROOT}/public/static/groq/${hash}.json` );
       return result;
     }
     catch( err ) {
@@ -80,9 +84,25 @@ exports.runQuery = async ( rawQuery, dataset, options = {} ) => {
         query = query.replace( pattern, value );
       }
       // Process function.
-      // else if( typeof value === 'function' ) {
-      //
-      // }
+      else if( typeof value === 'function' ) {
+
+        // const ast = parser.parse( query, {
+        //   errorRecovery: true,
+        //   plugins: [ 'jsx' ],
+        //   sourceType: 'module',
+        // } );
+        //
+        // traverse( ast, {
+        //   Identifier: function( path ) {
+        //
+        //     if( path.node.name === name ) {
+        //
+        //     }
+        //     console.log( '=======', path.node.name );
+        //   }
+        // } );
+
+      }
 
     }
   }

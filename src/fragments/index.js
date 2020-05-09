@@ -7,3 +7,19 @@ exports.demoString = `
   title,
   content
 `;
+
+exports.demoFunction = num => {
+
+  if( num === 2 ) {
+    return(`
+      _id,
+      title
+    `);
+  }
+  else {
+    return(`
+      _id
+    `);
+  }
+  
+}
