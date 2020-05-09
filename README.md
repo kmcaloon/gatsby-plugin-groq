@@ -44,10 +44,10 @@ Similar to page queries, all files are watched for changes and whenever there is
 
 
 ## ⌛ TO DO (random order)
-- Get rid of relative directories
-- Work on issues with joins
-- Need to execute code before traversing for GROQ fragments / string interpolation
+- ~~Get rid of relative directories~~
+- ~~Work on issues with joins~~ we might be limited here
 - GROQ explorer
+- Run fragment functions before interpolating into queries
 - Experiment with other data sources (WordPress)
 - Set up an option to auto-resolve references?
 - Clean up spotty caching issues after running development
