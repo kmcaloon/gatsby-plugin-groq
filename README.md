@@ -56,7 +56,7 @@ export function() {
 
 }
 ```
-5. For more flexibility and advanced usage checkout [Fragments](<a name="fragments"></a>)
+5. For more flexibility and advanced usage check out [Fragments](#fragments")
 
 ## 🤔 What is This? <a name="introduction"></a>
 Gatsby is an amazing tool that has helped advance modern web development in significant ways. While many love it for its magical frontend concotion of static generation an rehydration via React, easy routing, smart prefetching, image rendering, etc., one of the key areas where it stands out from other similar tools is its GraphQL data layer. This feature is in large part the reason why some love Gatsby and why others choose to go in another direction. Being able to source data from multiple APIs, files, etc. and compile them altogether into a queryable GraphQL layer is ***amazing***, but many developers don't enjoy working with GraphQL. This is where GROQ comes in.
