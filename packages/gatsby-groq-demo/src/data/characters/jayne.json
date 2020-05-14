@@ -1,0 +1,9 @@
+{
+  "id": "jayneId",
+  "firstname": "Jayne",
+  "lastname": "Cobb",
+  "position": "Hired Gun",
+  "ship": {
+    "_ref": "serenityId"
+  }
+}

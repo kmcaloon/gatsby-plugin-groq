@@ -1,0 +1,15 @@
+{
+  "id": "heartOfGoldId",
+  "client": {
+    "_ref": "nandiId"
+  },
+  "crew": [
+    { "_ref": "malcomId" },
+    { "_ref": "zoeId" },
+    { "_ref": "jayneId" },
+    { "_ref": "washId" },
+    { "_ref": "shepherdId" },
+    { "_ref": "simonId" },
+    { "_ref": "inaraId" }
+  ]
+}

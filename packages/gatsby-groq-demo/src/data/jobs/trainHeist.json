@@ -1,0 +1,14 @@
+{
+  "id": "trainHeistId",
+  "worlds": [
+    { "_ref": "reginaId" }
+  ],
+  "client": {
+    "_ref": "niskaId"
+  },
+  "crew": [
+    { "_ref": "malcomId" },
+    { "_ref": "jayneId" },
+    { "_ref": "zoeId" }
+  ]
+}

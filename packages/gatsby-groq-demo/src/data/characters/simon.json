@@ -1,0 +1,9 @@
+{
+  "id": "simonId",
+  "firstname": "Simon",
+  "lastname": "Tam",
+  "position": "Doctor",
+  "ship": {
+    "_ref": "serenityId"
+  }
+}

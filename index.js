@@ -1,9 +1,7 @@
 const groq = require( 'groq-js' );
 const murmurhash = require( './murmur' );
-const parser = require( '@babel/parser' );
-const traverse = require( '@babel/traverse' ).default;
+const { reporter } = require( './utils' );
 
-const ROOT = process.env.INIT_CWD;
 
 /**
  * Hook to mimic Gatsby's static query.
@@ -18,29 +16,13 @@ exports.useGroqQuery = query => {
 
   const hash = murmurhash( query );
 
-  if( process.env.NODE_ENV === 'development' ) {
-
-    try {
-      const result = require( `${ROOT}/.cache/groq/${hash}.json` );
-      return result;
-    }
-    catch( err ) {
-      console.warn( err );
-    }
-
+  try {
+    const result = require( `${process.env.GROQ_DIR}/${hash}.json` );
+    return result;
   }
-  else {
-
-    try {
-      const result = require( `${ROOT}/public/static/groq/${hash}.json` );
-      return result;
-    }
-    catch( err ) {
-      console.warn( err );
-    }
-
+  catch( err ) {
+    console.warn( err );
   }
-
 
 }
 
@@ -52,11 +34,12 @@ exports.useGroqQuery = query => {
  * @param   {Object}  options
  * @param   {Object}  options.fragments
  * @param   {Object}  options.params
- * @return  {array}
+ * @param   {string}  options.file      For debugging.
+ * @return  {Object}  Array of results along with final query
  */
 exports.runQuery = async ( rawQuery, dataset, options = {} ) => {
 
-  const { fragments, params } = options;
+  const { file, fragments, params } = options;
   let query = rawQuery;
 
   // Check if query has fragment.
@@ -65,7 +48,7 @@ exports.runQuery = async ( rawQuery, dataset, options = {} ) => {
   if( hasFragment ) {
 
     if( ! fragments || ! Object.keys( fragments ).length ) {
-      console.warn( 'GROQ query contains fragments but no fragment index found.' );
+      reporter.warn( 'Query contains fragments but no index provided.' );
       return;
     }
 
@@ -107,20 +90,25 @@ exports.runQuery = async ( rawQuery, dataset, options = {} ) => {
     }
   }
 
-  query = query.replace( /`/g, '', );
-
   try {
 
-    const parsedQuery = groq.parse( query );
+    const strippedQuery = query.replace( /`/g, '', );
+    const parsedQuery = groq.parse( strippedQuery );
     const value = await groq.evaluate( parsedQuery, { dataset } );
     const result = await value.get();
 
-    return result;
+    return { result, finalQuery: query }
 
   }
   catch( err ) {
-    console.error( err );
+    console.error( file );
+    reporter.error( `${err}` );
+    reporter.error( query );
+
+    return err;
+
   }
+
 
 }
 

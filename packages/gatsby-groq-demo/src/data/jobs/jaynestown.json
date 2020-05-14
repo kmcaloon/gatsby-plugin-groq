@@ -1,0 +1,16 @@
+{
+  "id": "jaynestownId",
+  "worlds": [
+    { "_ref": "higginsMoonId" }
+  ],
+  "client": {
+    "_ref": "?"
+  },
+  "crew": [
+    { "_ref": "malcomId" },
+    { "_ref": "jayneId" },
+    { "_ref": "kayleeId" },
+    { "_ref": "washId" },
+    { "_ref": "simonId" }
+  ]
+}

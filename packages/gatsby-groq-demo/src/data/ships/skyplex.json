@@ -1,0 +1,11 @@
+{
+  "id": "skyplexId",
+  "name": "Niska's Skyplex",
+  "type": "Space Station",
+  "strengths": [
+    "Heavily guarded"
+  ],
+  "weaknesses": [
+    "Suprisingly easy to takeover"
+  ]
+}

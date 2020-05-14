@@ -1,29 +1,98 @@
-# Gatsby Groq (WIP)
+# gatbsy-plugin-groq
 
-**This is a WIP which for now includes a starter theme with local plugin for development purposes. Once ironed out it will be its own standalone plugin and these docs will be less abysmal**
+**Gatsby plugin for using GROQ in place of GraphQL**
+
+The purpose of this plugin is to merge the power of GROQ and Gatsby by allowing developers to run GROQ queries against Gatsby's data layer for their page and static queries. For those of you who are familiar with GROQ, you are probably already in love and need no introduction. For everyone else, I highly suggest reading the below [What is This](#introduction) and [Resources](#resources) sections.
+
+Included in this repository is a demo Gatsby starter with some data to play around with. You can find it under `packages/gatsby-groq-starter`. Just download the files and add this plugin within your `plugins` directory to start having fun.
 
 **View low quality demo here:**
 https://drive.google.com/file/d/1FVch2HbAWk1TEXph1katiNb1uuaBLSHf/view?usp=sharing
 
-To do: Purpose of plugin (groq > graphql). Shout outs to Sanity and Gatsby teams because they're so awesome.
-
-Actual plugin can be found in `plugins/gatsby-plugin-groq`. `index.js` contains some functions used during build and runtime, whereas `gatsby-node.js` contains all the wizardry.
-
 ## 🎂 Features
+- Works with any data pulled into Gatsby's data layer
 - Replicates Gatsby's beloved patterns
-- Works with any data pulled into Gatsby's data layer **(Needs Testing)**
 - GROQ-based page queries with HMR
 - GROQ-based static queries with live reloads
-- Leverages GROQ's native functionality for advanced querying, node/document projections, joins (limited), etc.
-- String interpolation within queries, much more flexible than GraphQL fragments **(TO DO)**
+- Leverages GROQ's native functionality for advanced querying, node/document projections, joins (limited), etc,
+- String interpolation ("fragments") within queries, much more flexible than GraphQL fragments
 - GROQ explorer in browser during development at `locahost:8000/__groq` **(TO DO)**
 - Optimized for incremental builds on Cloud and OSS **(TO DO)**
 
+## 🚀 Get Started
 
-## 🧙 How it works
+1. For now, download and install in your local `plugins` directory at the root of your Gatsby project.
+2. In `gatbsy-config.js`, add the plugin configuration to the `plugins` array:
+```
+module.exports = {
+  //...
+  plugins: [
+    {
+      resolve: 'gatsby-plugin-groq',
+      options: {
+        // Location of your project's fragments index file.
+        // Only required if you are implementing fragments.
+        fragmentsDir: './src/fragments'
+      }
+    }
+  ]
+}
+```
+3. To use a GROQ page query, simply add a named `groqQuery` export to the top of your component file as you would a Gatsby query:
+```
+export const groqQuery = `
+  ...
+`
+```
+4. To use a GROQ static query, use the `useGroqQuery` hook:
+```
+import { useGroqQuery } from 'src/plugins/gatsby-plugin-groq';
+
+export function() {
+
+  const data = useGroqQuery( `
+    ...
+  ` );
+
+}
+```
+5. For more flexibility and advanced usage checkout [Fragments](<a name="fragments"></a>)
+
+## 🤔 What is This? <a name="introduction"></a>
+Gatsby is an amazing tool that has helped advance modern web development in significant ways. While many love it for its magical frontend concotion of static generation an rehydration via React, easy routing, smart prefetching, image rendering, etc., one of the key areas where it stands out from other similar tools is its GraphQL data layer. This feature is in large part the reason why some love Gatsby and why others choose to go in another direction. Being able to source data from multiple APIs, files, etc. and compile them altogether into a queryable GraphQL layer is ***amazing***, but many developers don't enjoy working with GraphQL. This is where GROQ comes in.
+
+GROQ (**G**raph-**R**elational **O**bject **Q**ueries) is an incredibly robust and clear general query language design by the folks at Sanity Inc. for filtering and projecting JSON data. In many is very similar to GraphQL in that you can run multiple robust queries and specify the data you need all within a single request, however with GROQ you can accomplish much more in a more clear and flexible way. It supports complex parameters and operators, functions, piping, advanced joins, slicing, ordering, projections, conditionals, pagination etc., all with an intuitive syntax 😲.
+
+For example, take this somewhat simple GraphQL query:
+
+```
+{
+  authors(where: {
+      debutedBefore_lt: "1900-01-01T00:00:00Z",
+      name_matches: "Edga*r"
+  ) {
+    name,
+    debutYear,
+  }
+}
+```
+
+Here is what it would look like using GROQ:
+
+```
+*[_type == "author" && name match "Edgar" && debutYear < 1900]{
+  name,
+  debutYear
+}
+```
+
+The more complex the queries, the smoother GROQ becomes. This is why some developers already familiar with GROQ bypass Gatsby's data layer so that they could leverage its power.
+
+
+## 🧙 How it Works
 This plugin mimics Gatsby's own method of extracting queries from components by using a few Babel tools to parse files and traverse code to capture all queries found in files. By leveraging Gatsby's Node APIs and helpers we are able to extract queries from files on demand then run them against all GraphQL nodes found in Gatsby's redux store. After queries are run we can either feed results into a page's context (page queries), or cache for later use within individual components (static queries). Everything was done to leverage available APIs and to avoid interacting with Gatsby's data store directly as much as possible.
 
-For now, all cache related to groq queries can be found in `.cache/groq` during development and `public/static/groq` in production. **Note: I have made some changes since last testing builds so they might be buggy**
+For now, all cache related to groq queries can be found in `.cache/groq` during development and `public/static/groq` in production.
 
 ###  Page Queries
 All page-level components with `groqQuery` exports will have their queries (template literal) extracted and cached unprocessed as a hashed json file in the groq directory. The hash is based on the component file's full path so that the cached file can always be associated with the component. During bootstrap, whenever a page is created via `createPage` the plugin checks the cache to see if there is a page query related to it page's component. If there is, it then runs the query and replaces any variables with values supplied in the page's context. The result is stored in the `data` property within `pageContext`.
@@ -37,28 +106,61 @@ All components using the hook `useGroqQuery` first have these queries extracted,
 
 Similar to page queries, all files are watched for changes and whenever there is a change to a file containing a static query the above process runs again, the query results are cached, and the page refreshes with the static query now returning the updated content.
 
+### Fragments <a name="fragments"></a>
+Playing off of GraphQL, "fragments" are strings of reusable portions of GROQ queries that can be interpolated within other queries. For example, say you have a blog where you are showing post snippets throughout multiple page templates and for every post need to retrieve its `id`, `title`, `summary`, and `category`, along with the category's `name` and `slug`. Instead of having to remember which fields you need and write this out every time, you could create a reusable fragment:
 
+```
+exports.postSnippetFields = `
+  id,
+  summary,
+  title,
+  "category": *[ type == "category" && id == ^.category ] {
+    name,
+    slug
+  }
+`
+```
 
-**I think that covers most of it. Check the comments within code for more details...**
+Then simply reuse the fragment wherever you need:
 
+```
+import { postSnippetFields } from 'src/fragments';
+
+const groqQuery = `
+  *[ type == "post" ] {
+    ${postSnippetFields}
+  }
+```
+To use GROQ fragments with this plugin, for now all fragments must be exported from a `index.js` using CommonJS syntax. You must also specify the directory where this file is found within the plugin options: `fragmentsDir: // Directory relative to project root`.
+
+**That should cover most of it. Check the comments within code for more details.**
 
 
 ## ⌛ TO DO (random order)
 - ~~Get rid of relative directories~~
 - ~~Work on issues with joins~~ we might be limited here
+- ~~Clean up spotty caching issues after running development~~
+- ~~Experiment with other data sources (WordPress)~~
 - GROQ explorer
-- Run fragment functions before interpolating into queries
-- Experiment with other data sources (WordPress)
+- Allow for fragment functions
+- Set up page refreshing when fragments are changed
+- Look into using esm for ES6 imports/exports
 - Set up an option to auto-resolve references?
-- Clean up spotty caching issues after running development
-- Error messaging (especially when there are Babel parsing errors
-- Parsing options (i.e. allow ECMAScript proposals)
+- Error messaging (especially when there are Babel parsing errors)
 - Performance optimizations
 - Improve docs
 - Provide recipe docs with heavy use of fragments
 - Incremental builds?
 - Allow for variables within static queries?
-- Use esm?
 - Helpers for real-time listening in client (Sanity only)
 - Tests
-- Proselytize everyone from GraphQL to Groq.
+- Proselytize everyone from GraphQL to GROQ.
+
+## 📖 GROQ Resources
+- [GROQ Intro Video](https://www.youtube.com/watch?v=Jcfubj2zRI0)
+- [GROQ Docs](https://www.sanity.io/docs/overview-groq)
+- [CSS Ticks - The Best (GraphQL) API is One You Write](https://css-tricks.com/the-best-graphql-api-is-one-you-write/)
+- [Review of GROQ, A New JSON Query Language](https://nordicapis.com/review-of-groq-a-new-json-query-language/)
+
+## 🙇 Huge Thanks
+Thanks to the awesome teams at [Gatsby](https://www.gatsbyjs.org/) and [Sanity](https://www.sanity.io/) for their absolutely amazing tools and developer support. If you haven't checked it out yet, I would **HIGHLY** recommend looking into Sanity's incredible CMS. It's hard to imagine how a headless CMS experience could be any better.

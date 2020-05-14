@@ -1,0 +1,12 @@
+{
+  "id": "spaceSalvageId",
+  "worlds": [],
+  "client": {
+    "_ref": "badgerId"
+  },
+  "crew": [
+    { "_ref": "malcomId" },
+    { "_ref": "jayneId" },
+    { "_ref": "washId" }
+  ]
+}

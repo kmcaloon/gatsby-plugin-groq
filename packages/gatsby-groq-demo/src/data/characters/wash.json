@@ -1,0 +1,9 @@
+{
+  "id": "washId",
+  "firstname": "Wash",
+  "lastname": "Washburne",
+  "position": "Pilot",
+  "ship": {
+    "_ref": "serenityId"
+  }
+}

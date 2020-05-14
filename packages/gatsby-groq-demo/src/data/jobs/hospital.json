@@ -1,0 +1,15 @@
+{
+  "id": "hospitalId",
+  "worlds": [
+    { "_ref": "aerialId" }
+  ],
+  "client": {
+    "_ref": "simonId"
+  },
+  "crew": [
+    { "_ref": "malcomId" },
+    { "_ref": "zoeId" },
+    { "_ref": "jayneId" },
+    { "_ref": "simonId" }
+  ]
+}

@@ -1,0 +1,9 @@
+{
+  "id": "niskaId",
+  "firstname": "Adelai",
+  "lastname": "Niska",
+  "position": "Mob Boss",
+  "ship": {
+    "_ref": "skyplexId"
+  }
+}

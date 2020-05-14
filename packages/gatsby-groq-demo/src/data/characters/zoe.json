@@ -1,0 +1,9 @@
+{
+  "id": "zoeId",
+  "firstname": "Zoe",
+  "lastname": "Washburne",
+  "position": "First Mate",
+  "ship": {
+    "_ref": "serenityId"
+  }
+}

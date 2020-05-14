@@ -1,0 +1,9 @@
+{
+  "id": "inaraId",
+  "firstname": "Inara",
+  "lastname": "Serra",
+  "position": "Companion",
+  "ship": {
+    "_ref": "serenityId"
+  }
+}

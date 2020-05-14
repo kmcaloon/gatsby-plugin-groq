@@ -1,0 +1,9 @@
+{
+  "id": "riverId",
+  "firstname": "River",
+  "lastname": "Tam",
+  "position": "Assassin",
+  "ship": {
+    "_ref": "serenityId"
+  }
+}

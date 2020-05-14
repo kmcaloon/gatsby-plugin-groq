@@ -1,0 +1,17 @@
+{
+  "id": "cattleId",
+  "worlds": [
+    { "_ref": "santoId" },
+    { "_ref": "jiangyinId" }
+  ],
+  "client": {
+    "_ref": "badgerId"
+  },
+  "crew": [
+    { "_ref": "malcomId" },
+    { "_ref": "jayneId" },
+    { "_ref": "kayleeId" },
+    { "_ref": "shepherdId" },
+    { "_ref": "zoeId" }
+  ]
+}

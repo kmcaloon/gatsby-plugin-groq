@@ -1,0 +1,18 @@
+{
+  "id": "lassiterId",
+  "worlds": [
+    { "_ref": "bellerophonId" }
+  ],
+  "client": {
+    "_ref": "saffronId"
+  },
+  "crew": [
+    { "_ref": "malcomId" },
+    { "_ref": "saffronId" },
+    { "_ref": "kayleeId" },
+    { "_ref": "zoeId" },
+    { "_ref": "jayneId" },
+    { "_ref": "washId" },
+    { "_ref": "inaraId" }
+  ]
+}

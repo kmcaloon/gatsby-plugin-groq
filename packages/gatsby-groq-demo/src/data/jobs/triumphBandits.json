@@ -1,0 +1,14 @@
+{
+  "id": "triumphBanditsId",
+  "worlds": [
+    { "_ref": "triumphId" }
+  ],
+  "client": {
+    "_ref": "niskaId"
+  },
+  "crew": [
+    { "_ref": "malcomId" },
+    { "_ref": "jayneId" },
+    { "_ref": "zoeId" }
+  ]
+}

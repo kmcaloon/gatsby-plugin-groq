@@ -1,0 +1,12 @@
+{
+  "id": "serenityId",
+  "name": "Serenity",
+  "type": "Firefly",
+  "strengths": [
+    "Large cargo bay",
+    "Plenty of hiding spots"
+  ],
+  "weaknesses": [
+    "Compression coils"
+  ]
+}

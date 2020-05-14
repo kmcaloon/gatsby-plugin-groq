@@ -1,0 +1,9 @@
+{
+  "id": "kayleeId",
+  "firstname": "Kaylee",
+  "lastname": "Frye",
+  "position": "Mechanic",
+  "ship": {
+    "_ref": "serenityId"
+  }
+}
