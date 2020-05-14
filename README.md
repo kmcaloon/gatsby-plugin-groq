@@ -156,7 +156,7 @@ To use GROQ fragments with this plugin, for now all fragments must be exported f
 - Tests
 - Proselytize everyone from GraphQL to GROQ.
 
-## 📖 GROQ Resources
+## 📖 GROQ Resources <a name="resources"></a>
 - [GROQ Intro Video](https://www.youtube.com/watch?v=Jcfubj2zRI0)
 - [GROQ Docs](https://www.sanity.io/docs/overview-groq)
 - [CSS Ticks - The Best (GraphQL) API is One You Write](https://css-tricks.com/the-best-graphql-api-is-one-you-write/)
