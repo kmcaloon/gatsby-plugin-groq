@@ -1,3 +1,4 @@
+const camelCase = require( 'camelcase' );
 const fs = require( 'fs' );
 const glob = require( 'glob' );
 const murmurhash = require( './murmur' );
@@ -12,6 +13,11 @@ const { reporter } = require( './utils' );
 // TODO
 const ROOT = process.env.INIT_CWD;
 const GROQ_DIR = process.env.NODE_ENV === 'development' ? `${ROOT}/.cache/groq` : `${ROOT}/public/static/groq`;
+const customBabelConfig = `${ROOT}/.babelrc`
+let babelConfig = !! fs.existsSync( customBabelConfig ) ? fs.readFileSync( customBabelConfig, 'utf8' ) : null;
+if( !! babelConfig ) {
+  babelConfig = JSON.parse( babelConfig );
+}
 
 
 /**
@@ -20,12 +26,13 @@ const GROQ_DIR = process.env.NODE_ENV === 'development' ? `${ROOT}/.cache/groq` 
  *
  * Runs in right after schema creation and before createPages.
  */
-exports.resolvableExtensions = async ( { graphql, actions, cache, getNodes, traceId, store }, plugin ) => {
+exports.resolvableExtensions = async ( { graphql, actions, cache, getNodes, traceId, store, plugins }, plugin ) => {
 
   if( !! fs.existsSync( GROQ_DIR ) ) {
     fs.rmdirSync( GROQ_DIR, { recursive: true } );
   }
   fs.mkdirSync( GROQ_DIR );
+
 
   // Cache fragments.
   const fragmentsDir = !! plugin.fragmentsDir ? path.join( ROOT, plugin.fragmentsDir ) : null;
@@ -306,7 +313,9 @@ async function pageQueryToContext( { actions, cache, file, getNodes, nodes, page
 /**
  * Custom webpack.
  */
-exports.onCreateWebpackConfig = async ( { actions, cache, plugins, store } ) => {
+exports.onCreateWebpackConfig = async ( { actions, cache, getConfig, loaders, plugins, store } ) => {
+
+  const config = getConfig();
 
 
   // Make sure we have have access to GROQ_DIR for useGroqQuery().
@@ -480,8 +489,24 @@ function parse( filePath, content, options = {} ) {
   const { plugins: additionalPlugins, ...additionalOptions } = options;
   let plugins = [ 'jsx' ];
 
-  if( !! additionalPlugins ) {
-    plugins = [ ...plugins, ...additionalPlugins ];
+  // This is experimental.
+  if( !! babelConfig ) {
+
+    if( !! babelConfig.plugins ) {
+      for( let plugin of babelConfig.plugins ) {
+
+        if( typeof plugin !== 'string' || plugin.substr( 0, 6 ) !== '@babel' ) {
+          continue;
+        }
+
+        let handle = plugin.replace( '@babel/plugin-', '' );
+        handle = handle.replace( 'proposal-', '' );
+        handle = camelCase( handle );
+
+        plugins.push( handle );
+
+      }
+    }
   }
 
   try {
@@ -497,8 +522,8 @@ function parse( filePath, content, options = {} ) {
 
   }
   catch( err ) {
-    console.warn( `Error parsing file: ${filePath}` );
-    console.log( 'Check below for more info' );
+    console.error( `Error parsing file: ${filePath}` );
+    console.log( err );
     return null;
   }
 
