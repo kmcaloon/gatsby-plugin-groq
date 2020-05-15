@@ -14,7 +14,7 @@ https://drive.google.com/file/d/1FVch2HbAWk1TEXph1katiNb1uuaBLSHf/view?usp=shari
 - Replicates Gatsby's beloved patterns
 - GROQ-based page queries with HMR
 - GROQ-based static queries with live reloads
-- Leverages GROQ's native functionality for advanced querying, node/document projections, joins (limited), etc,
+- Leverages GROQ's native functionality for advanced querying, node/document projections, joins (see [limitations](#joins)), etc,
 - String interpolation ("fragments") within queries, much more flexible than GraphQL fragments
 - GROQ explorer in browser during development at `locahost:8000/__groq` **(TO DO)**
 - Optimized for incremental builds on Cloud and OSS **(TO DO)**
@@ -62,6 +62,8 @@ export function() {
 }
 ```
 5. For more flexibility and advanced usage check out [Fragments](#fragments)
+
+**NOTE: If using joins, please see [limitations](#joins)**
 
 ## 🤔 What is This? <a name="introduction"></a>
 Gatsby is an amazing tool that has helped advance modern web development in significant ways. While many love it for its magical frontend concoction of static generation and rehydration via React, easy routing, smart prefetching, image rendering, etc., one of the key areas where it stands out from other similar tools is its GraphQL data layer. This feature is a large part of why some developers love Gatsby and why others choose to go in another direction. Being able to source data from multiple APIs, files, etc. and compile them altogether into a queryable GraphQL layer is ***amazing***, but many developers simply don't enjoy working with GraphQL. This is where GROQ comes in.
@@ -139,6 +141,12 @@ const groqQuery = `
 To use GROQ fragments with this plugin, for now all fragments must be exported from a `index.js` using CommonJS syntax. You must also specify the directory where this file is found within the plugin options: `fragmentsDir: // Directory relative to project root`.
 
 **That should cover most of it. Check the comments within code for more details.**
+
+## 🤦 Limitations
+### Joins <a name="joins"></a>
+Apart from references to assets such as images within Sanity datasets, the shorthand join syntax using the `->` operator is not supported. This is primarily related to the GROQ js client but may change in the future. Until then use the "Other Joins" syntaxes as documented [here](https://www.sanity.io/docs/groq-joins).
+
+Here is an example needing to match a `_ref` found within an array of objects: https://groq.dev/oLIs5ABtnM0xrG9aSSJBYg
 
 
 ## ⌛ TO DO (random order)
