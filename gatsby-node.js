@@ -1,12 +1,9 @@
-const axios = require( 'axios' );
-const chalk = require( 'chalk' );
 const fs = require( 'fs' );
 const glob = require( 'glob' );
 const murmurhash = require( './murmur' );
 const normalizePath = require( 'normalize-path' );
 const parser = require( '@babel/parser' );
 const path = require( 'path' );
-const gatsbyReporter = require( 'gatsby-cli/lib/reporter' );
 const traverse = require( '@babel/traverse' ).default;
 const { watch } = require( 'chokidar' );
 const { runQuery } = require( './index' );

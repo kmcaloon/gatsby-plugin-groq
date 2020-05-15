@@ -1,13 +1,13 @@
 {
   "name": "gatsby-plugin-groq",
-  "private": true,
   "description": "Gatsby plugin for using GROQ in place of GraphQL",
-  "version": "1.0.0-alpha.0",
+  "version": "1.0.0-alpha.1",
   "author": "Kevin McAloon <kevin@kmcaloon.com>",
   "keywords": [
     "gatsby"
   ],
   "license": "MIT",
+  "homepage": "https://github.com/kmcaloon/gatsby-plugin-groq",
   "repository": {
     "type": "git",
     "url": "https://github.com/kmcaloon/gatsby-plugin-groq"
@@ -18,7 +18,6 @@
     "axios": "^0.19.2",
     "chokidar": "^3.4.0",
     "fs": "^0.0.1-security",
-    "gatsby-cli": "^2.12.16",
     "glob": "^7.1.6",
     "groq-js": "^0.1.5",
     "normalize-path": "^3.0.0"

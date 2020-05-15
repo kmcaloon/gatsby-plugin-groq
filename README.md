@@ -2,9 +2,9 @@
 
 **Gatsby plugin for using GROQ in place of GraphQL**
 
-The purpose of this plugin is to merge the power of GROQ and Gatsby by allowing developers to run GROQ queries against Gatsby's data layer for their page and static queries. For those of you who are familiar with GROQ, you are probably already in love and need no introduction. For everyone else, I highly suggest reading the below [What is This](#introduction) and [Resources](#resources) sections.
+The purpose of this plugin is to merge the power of GROQ and Gatsby by allowing developers to run GROQ queries against Gatsby's data layer in their page and static queries. For those of you who are familiar with GROQ, you are probably already in love and need no introduction. For everyone else, I highly suggest reading the below [What is This](#introduction) and [Resources](#resources) sections.
 
-Included in this repository is a demo Gatsby starter with some data to play around with. You can find it under `packages/gatsby-groq-starter`. Just download the files and add this plugin within your `plugins` directory to start having fun.
+Included in this repository is a demo Gatsby starter with some data to play around with. You can find it under `packages/gatsby-groq-starter`. Just download the files and follow the plugin installation instructions below to start having fun.
 
 **View low quality demo here:**
 https://drive.google.com/file/d/1FVch2HbAWk1TEXph1katiNb1uuaBLSHf/view?usp=sharing
@@ -21,7 +21,12 @@ https://drive.google.com/file/d/1FVch2HbAWk1TEXph1katiNb1uuaBLSHf/view?usp=shari
 
 ## 🚀 Get Started
 
-1. For now, download and install in your local `plugins` directory at the root of your Gatsby project.
+1. At the root of your Gatsby project, install from the command line:
+```
+npm install --save gatsby-plugin-groq
+// or
+yarn add gatsby-plugin-groq
+```
 2. In `gatbsy-config.js`, add the plugin configuration to the `plugins` array:
 ```
 module.exports = {
@@ -59,9 +64,13 @@ export function() {
 5. For more flexibility and advanced usage check out [Fragments](#fragments)
 
 ## 🤔 What is This? <a name="introduction"></a>
-Gatsby is an amazing tool that has helped advance modern web development in significant ways. While many love it for its magical frontend concotion of static generation an rehydration via React, easy routing, smart prefetching, image rendering, etc., one of the key areas where it stands out from other similar tools is its GraphQL data layer. This feature is in large part the reason why some love Gatsby and why others choose to go in another direction. Being able to source data from multiple APIs, files, etc. and compile them altogether into a queryable GraphQL layer is ***amazing***, but many developers don't enjoy working with GraphQL. This is where GROQ comes in.
+Gatsby is an amazing tool that has helped advance modern web development in significant ways. While many love it for its magical frontend concoction of static generation and rehydration via React, easy routing, smart prefetching, image rendering, etc., one of the key areas where it stands out from other similar tools is its GraphQL data layer. This feature is a large part of why some developers love Gatsby and why others choose to go in another direction. Being able to source data from multiple APIs, files, etc. and compile them altogether into a queryable GraphQL layer is ***amazing***, but many developers simply don't enjoy working with GraphQL. This is where GROQ comes in.
 
+<<<<<<< HEAD
+GROQ (**G**raph-**R**elational **O**bject **Q**ueries) is an incredibly robust and clear general query language designed by the folks at [Sanity](https://www.sanity.io/) for filtering and projecting JSON data. In many ways it is very similar to GraphQL in that you can run multiple robust queries and specify the data you need all within a single request, however with GROQ you can accomplish much more in a smoother and more flexible way. It supports complex parameters and operators, functions, piping, advanced joins, slicing, ordering, projections, conditionals, pagination etc., all with an intuitive syntax 😲.
+=======
 GROQ (**G**raph-**R**elational **O**bject **Q**ueries) is an incredibly robust and clear general query language design by the folks at Sanity Inc. for filtering and projecting JSON data. In many ways it is very similar to GraphQL in that you can run multiple robust queries and specify the data you need all within a single request, however with GROQ you can accomplish much more in a more clear and flexible way. It supports complex parameters and operators, functions, piping, advanced joins, slicing, ordering, projections, conditionals, pagination etc., all with an intuitive syntax 😲.
+>>>>>>> origin/master
 
 For example, take this somewhat simple GraphQL query:
 
@@ -86,7 +95,7 @@ Here is what it would look like using GROQ:
 }
 ```
 
-The more complex the queries, the smoother GROQ becomes. This is why some developers already familiar with GROQ bypass Gatsby's data layer so that they could leverage its power.
+The more complex the queries, the more GROQ's advantages shine. This is why some developers already familiar with GROQ bypass Gatsby's data layer so that they could leverage its power.
 
 
 ## 🧙 How it Works
