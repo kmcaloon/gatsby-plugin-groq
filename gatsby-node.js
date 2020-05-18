@@ -27,6 +27,20 @@ exports.resolvableExtensions = async ( { graphql, actions, cache, getNodes, trac
   }
   fs.mkdirSync( GROQ_DIR );
 
+  // Cache options (because we need them on frontend)
+  // Probably a more sophisticated Gatsby way of doing this.
+  if( !! plugin ) {
+
+    fs.writeFileSync( `${GROQ_DIR}/options.json`, JSON.stringify( plugin ), err => {
+      if( err ) {
+        throw new Error( err );
+      }
+    } );
+    
+  }
+
+
+
   // Cache fragments.
   const fragmentsDir = !! plugin.fragmentsDir ? path.join( ROOT, plugin.fragmentsDir ) : null;
 

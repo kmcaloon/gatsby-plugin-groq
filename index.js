@@ -46,49 +46,10 @@ exports.runQuery = async ( rawQuery, dataset, options = {} ) => {
   const hasFragment = query.includes( '${' );
 
   if( hasFragment ) {
-
-    if( ! fragments || ! Object.keys( fragments ).length ) {
-      reporter.warn( 'Query contains fragments but no index provided.' );
-      return;
-    }
-
-    // For now we are just going through all fragments and running
-    // simple string replacement.
-    for( let [ name, value ] of Object.entries( fragments ) ) {
-
-      if( ! query.includes( name ) ) {
-        continue;
-      }
-
-      // Process string.
-      if( typeof value === 'string' ) {
-        const search = `\\$\\{(${name})\\}`;
-        const pattern = new RegExp( search, 'g' );
-        query = query.replace( pattern, value );
-      }
-      // Process function.
-      else if( typeof value === 'function' ) {
-
-        // const ast = parser.parse( query, {
-        //   errorRecovery: true,
-        //   plugins: [ 'jsx' ],
-        //   sourceType: 'module',
-        // } );
-        //
-        // traverse( ast, {
-        //   Identifier: function( path ) {
-        //
-        //     if( path.node.name === name ) {
-        //
-        //     }
-        //     console.log( '=======', path.node.name );
-        //   }
-        // } );
-
-      }
-
-    }
+    query = processFragments( query, fragments );
   }
+
+  query = processJoins( query );
 
   try {
 
@@ -103,11 +64,91 @@ exports.runQuery = async ( rawQuery, dataset, options = {} ) => {
   catch( err ) {
     console.error( file );
     reporter.error( `${err}` );
-    reporter.error( query );
+    reporter.error( `Query: ${query}` );
 
     return err;
 
   }
+
+
+}
+
+/**
+ * Process joins.
+ *
+ * @param   {string}  query
+ * @return  {string}
+ */
+function processJoins( query ) {
+
+  // We need to figure out a clean way to get plugin options...
+  let processedQuery = query;
+
+  console.log( '....' );
+
+  if( processedQuery.includes( '->' ) ) {
+    const search = `\\S+->\\w*`;
+    const regex = /\S+->\w*/gm;
+
+    for( let match of regex.exec( processedQuery ) ) {
+
+      let field = match.replace( '->', '' );
+
+      // Array.
+      if( field.contains( '[]' ) ) {
+
+      }
+
+    }
+
+    // const pattern = new RegExp( search, 'g' );
+    // const value = 'HIIIIII';
+    // processedQuery = processedQuery.replace( pattern, value );
+    // console.log( processedQuery );
+  }
+
+  return processedQuery;
+
+}
+
+/**
+ * Process fragments.
+ *
+ * @param   {string}  query
+ * @param   {object}  fragments
+ * @return  {string}
+ */
+function processFragments( query, fragments ) {
+
+  let processedQuery = query;
+
+  if( ! fragments || ! Object.keys( fragments ).length ) {
+    reporter.warn( 'Query contains fragments but no index provided.' );
+    return null;
+  }
+
+  // For now we are just going through all fragments and running
+  // simple string replacement.
+  for( let [ name, value ] of Object.entries( fragments ) ) {
+
+    if( ! processedQuery.includes( name ) ) {
+      continue;
+    }
+
+    // Process string.
+    if( typeof value === 'string' ) {
+      const search = `\\$\\{(${name})\\}`;
+      const pattern = new RegExp( search, 'g' );
+      processedQuery = processedQuery.replace( pattern, value );
+    }
+    // Process function.
+    // else if( typeof value === 'function' ) {
+    //
+    // }
+
+  }
+
+  return processedQuery;
 
 
 }
