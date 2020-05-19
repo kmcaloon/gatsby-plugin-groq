@@ -8,10 +8,9 @@ const traverse = require( '@babel/traverse' ).default;
 const { watch } = require( 'chokidar' );
 const { runQuery } = require( './index' );
 const { reporter } = require( './utils' );
+const { groqDirectories } = require( './index' );
 
-// TODO
-const ROOT = process.env.INIT_CWD;
-const GROQ_DIR = process.env.NODE_ENV === 'development' ? `${ROOT}/.cache/groq` : `${ROOT}/public/static/groq`;
+const { GROQ_DIR, ROOT } = groqDirectories;
 
 
 /**
@@ -36,7 +35,7 @@ exports.resolvableExtensions = async ( { graphql, actions, cache, getNodes, trac
         throw new Error( err );
       }
     } );
-    
+
   }
 
 

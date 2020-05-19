@@ -1,6 +1,16 @@
 const groq = require( 'groq-js' );
 const murmurhash = require( './murmur' );
+const path = require( 'path' );
 const { reporter } = require( './utils' );
+
+const ROOT = path.resolve( __dirname, '../..' );
+const GROQ_DIR = process.env.NODE_ENV === 'development' ? `${ROOT}/.cache/groq` : `${ROOT}/public/static/groq`;
+
+
+/**
+ * Use directory settings throughout plugin.
+ */
+exports.groqDirectories = { ROOT, GROQ_DIR };
 
 
 /**
@@ -15,6 +25,7 @@ const { reporter } = require( './utils' );
 exports.useGroqQuery = query => {
 
   const hash = murmurhash( query );
+
 
   try {
     const result = require( `${process.env.GROQ_DIR}/${hash}.json` );
@@ -84,27 +95,35 @@ function processJoins( query ) {
   // We need to figure out a clean way to get plugin options...
   let processedQuery = query;
 
-  console.log( '....' );
-
   if( processedQuery.includes( '->' ) ) {
+
+    const optionsDir = process.env.GROQ_DIR || GROQ_DIR;
+    const { autoRefs, referenceMatcher } = require( `${optionsDir}/options` );
+    const matchField = referenceMatcher || 'id';
+    const refOption = !! autoRefs ? '._ref' : '';
+
     const search = `\\S+->\\w*`;
     const regex = /\S+->\w*/gm;
+
 
     for( let match of regex.exec( processedQuery ) ) {
 
       let field = match.replace( '->', '' );
+      let replace = null;
 
-      // Array.
-      if( field.contains( '[]' ) ) {
-
+      // Single refs.
+      if( ! field.includes( '[]' ) ) {
+        replace = `*[ ${matchField} == ${field}${refOption} ][0]`;
       }
+      // Arrays.
+      else {
+        replace = `*[ ${matchField} in ${field}${refOption} ]`;
+      }
+
+      processedQuery = processedQuery.replace( match, replace );
 
     }
 
-    // const pattern = new RegExp( search, 'g' );
-    // const value = 'HIIIIII';
-    // processedQuery = processedQuery.replace( pattern, value );
-    // console.log( processedQuery );
   }
 
   return processedQuery;
