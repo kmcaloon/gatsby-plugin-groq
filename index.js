@@ -1,6 +1,16 @@
 const groq = require( 'groq-js' );
 const murmurhash = require( './murmur' );
+const path = require( 'path' );
 const { reporter } = require( './utils' );
+
+const ROOT = path.resolve( __dirname, '../..' );
+const GROQ_DIR = process.env.NODE_ENV === 'development' ? `${ROOT}/.cache/groq` : `${ROOT}/public/static/groq`;
+
+
+/**
+ * Use directory settings throughout plugin.
+ */
+exports.groqDirectories = { ROOT, GROQ_DIR };
 
 
 /**
@@ -15,6 +25,7 @@ const { reporter } = require( './utils' );
 exports.useGroqQuery = query => {
 
   const hash = murmurhash( query );
+
 
   try {
     const result = require( `${process.env.GROQ_DIR}/${hash}.json` );
@@ -46,49 +57,10 @@ exports.runQuery = async ( rawQuery, dataset, options = {} ) => {
   const hasFragment = query.includes( '${' );
 
   if( hasFragment ) {
-
-    if( ! fragments || ! Object.keys( fragments ).length ) {
-      reporter.warn( 'Query contains fragments but no index provided.' );
-      return;
-    }
-
-    // For now we are just going through all fragments and running
-    // simple string replacement.
-    for( let [ name, value ] of Object.entries( fragments ) ) {
-
-      if( ! query.includes( name ) ) {
-        continue;
-      }
-
-      // Process string.
-      if( typeof value === 'string' ) {
-        const search = `\\$\\{(${name})\\}`;
-        const pattern = new RegExp( search, 'g' );
-        query = query.replace( pattern, value );
-      }
-      // Process function.
-      else if( typeof value === 'function' ) {
-
-        // const ast = parser.parse( query, {
-        //   errorRecovery: true,
-        //   plugins: [ 'jsx' ],
-        //   sourceType: 'module',
-        // } );
-        //
-        // traverse( ast, {
-        //   Identifier: function( path ) {
-        //
-        //     if( path.node.name === name ) {
-        //
-        //     }
-        //     console.log( '=======', path.node.name );
-        //   }
-        // } );
-
-      }
-
-    }
+    query = processFragments( query, fragments );
   }
+
+  query = processJoins( query );
 
   try {
 
@@ -103,11 +75,98 @@ exports.runQuery = async ( rawQuery, dataset, options = {} ) => {
   catch( err ) {
     console.error( file );
     reporter.error( `${err}` );
-    reporter.error( query );
+    reporter.error( `Query: ${query}` );
 
     return err;
 
   }
+
+
+}
+
+/**
+ * Process joins.
+ *
+ * @param   {string}  query
+ * @return  {string}
+ */
+function processJoins( query ) {
+
+  // We need to figure out a clean way to get plugin options...
+  let processedQuery = query;
+
+  if( processedQuery.includes( '->' ) ) {
+
+    const optionsDir = process.env.GROQ_DIR || GROQ_DIR;
+    const { autoRefs, referenceMatcher } = require( `${optionsDir}/options` );
+    const matchField = referenceMatcher || 'id';
+    const refOption = !! autoRefs ? '._ref' : '';
+
+    const search = `\\S+->\\w*`;
+    const regex = /\S+->\w*/gm;
+
+    for( let match of regex.exec( processedQuery ) ) {
+
+      let field = match.replace( '->', '' );
+      let replace = null;
+
+      // Single refs.
+      if( ! field.includes( '[]' ) ) {
+        replace = `*[ ${matchField} == ^.${field}${refOption} ][0]`;
+      }
+      // Arrays.
+      else {
+        replace = `*[ ${matchField} in ^.${field}${refOption} ]`;
+      }
+
+      processedQuery = processedQuery.replace( match, replace );
+
+    }
+
+  }
+
+  return processedQuery;
+
+}
+
+/**
+ * Process fragments.
+ *
+ * @param   {string}  query
+ * @param   {object}  fragments
+ * @return  {string}
+ */
+function processFragments( query, fragments ) {
+
+  let processedQuery = query;
+
+  if( ! fragments || ! Object.keys( fragments ).length ) {
+    reporter.warn( 'Query contains fragments but no index provided.' );
+    return null;
+  }
+
+  // For now we are just going through all fragments and running
+  // simple string replacement.
+  for( let [ name, value ] of Object.entries( fragments ) ) {
+
+    if( ! processedQuery.includes( name ) ) {
+      continue;
+    }
+
+    // Process string.
+    if( typeof value === 'string' ) {
+      const search = `\\$\\{(${name})\\}`;
+      const pattern = new RegExp( search, 'g' );
+      processedQuery = processedQuery.replace( pattern, value );
+    }
+    // Process function.
+    // else if( typeof value === 'function' ) {
+    //
+    // }
+
+  }
+
+  return processedQuery;
 
 
 }

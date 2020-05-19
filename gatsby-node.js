@@ -8,10 +8,9 @@ const traverse = require( '@babel/traverse' ).default;
 const { watch } = require( 'chokidar' );
 const { runQuery } = require( './index' );
 const { reporter } = require( './utils' );
+const { groqDirectories } = require( './index' );
 
-// TODO
-const ROOT = path.resolve( __dirname, '../..' );
-const GROQ_DIR = process.env.NODE_ENV === 'development' ? `${ROOT}/.cache/groq` : `${ROOT}/public/static/groq`;
+const { GROQ_DIR, ROOT } = groqDirectories;
 
 
 /**
@@ -26,6 +25,20 @@ exports.resolvableExtensions = async ( { graphql, actions, cache, getNodes, trac
     fs.rmdirSync( GROQ_DIR, { recursive: true } );
   }
   fs.mkdirSync( GROQ_DIR );
+
+  // Cache options (because we need them on frontend)
+  // Probably a more sophisticated Gatsby way of doing this.
+  if( !! plugin ) {
+
+    fs.writeFileSync( `${GROQ_DIR}/options.json`, JSON.stringify( plugin ), err => {
+      if( err ) {
+        throw new Error( err );
+      }
+    } );
+
+  }
+
+
 
   // Cache fragments.
   const fragmentsDir = !! plugin.fragmentsDir ? path.join( ROOT, plugin.fragmentsDir ) : null;

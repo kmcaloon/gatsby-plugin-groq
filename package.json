@@ -1,7 +1,7 @@
 {
   "name": "gatsby-plugin-groq",
   "description": "Gatsby plugin for using GROQ in place of GraphQL",
-  "version": "1.0.0-alpha.4",
+  "version": "1.0.0-alpha.5",
   "author": "Kevin McAloon <kevin@kmcaloon.com>",
   "keywords": [
     "gatsby"
