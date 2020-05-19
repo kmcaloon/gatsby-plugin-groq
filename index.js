@@ -105,7 +105,6 @@ function processJoins( query ) {
     const search = `\\S+->\\w*`;
     const regex = /\S+->\w*/gm;
 
-
     for( let match of regex.exec( processedQuery ) ) {
 
       let field = match.replace( '->', '' );
@@ -113,11 +112,11 @@ function processJoins( query ) {
 
       // Single refs.
       if( ! field.includes( '[]' ) ) {
-        replace = `*[ ${matchField} == ${field}${refOption} ][0]`;
+        replace = `*[ ${matchField} == ^.${field}${refOption} ][0]`;
       }
       // Arrays.
       else {
-        replace = `*[ ${matchField} in ${field}${refOption} ]`;
+        replace = `*[ ${matchField} in ^.${field}${refOption} ]`;
       }
 
       processedQuery = processedQuery.replace( match, replace );
