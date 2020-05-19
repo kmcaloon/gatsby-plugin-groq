@@ -10,7 +10,7 @@ const { runQuery } = require( './index' );
 const { reporter } = require( './utils' );
 
 // TODO
-const ROOT = process.env.INIT_CWD;
+const ROOT = path.resolve( __dirname, '../..' );
 const GROQ_DIR = process.env.NODE_ENV === 'development' ? `${ROOT}/.cache/groq` : `${ROOT}/public/static/groq`;
 
 
