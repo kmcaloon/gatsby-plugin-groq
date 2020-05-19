@@ -14,11 +14,7 @@ https://drive.google.com/file/d/1FVch2HbAWk1TEXph1katiNb1uuaBLSHf/view?usp=shari
 - Replicates Gatsby's beloved patterns
 - GROQ-based page queries with HMR
 - GROQ-based static queries with live reloads
-<<<<<<< HEAD
-- Leverages GROQ's native functionality for advanced querying, node/document projections, joins (see [limitations](#limitations)), etc,
-=======
 - Leverages GROQ's native functionality for advanced querying, node/document projections, joins (see [notes on joins](#joins)), etc,
->>>>>>> feature/joins
 - String interpolation ("fragments") within queries, much more flexible than GraphQL fragments
 - GROQ explorer in browser during development at `locahost:8000/__groq` **(TO DO)**
 - Optimized for incremental builds on Cloud and OSS **(TO DO)**
@@ -73,11 +69,7 @@ export function() {
 ```
 5. For more flexibility and advanced usage check out [Fragments](#fragments)
 
-<<<<<<< HEAD
-**NOTE: If using joins or the gatsby-source-sanity plugin, please see [limitations](#limitations)**
-=======
-**NOTE: If using joins, please see [notes on joins](#joins)**
->>>>>>> feature/joins
+**NOTE: If using joins or the Sanity source plugin, please see [limitations](#limitations)**
 
 ## 🤔 What is This? <a name="introduction"></a>
 Gatsby is an amazing tool that has helped advance modern web development in significant ways. While many love it for its magical frontend concoction of static generation and rehydration via React, easy routing, smart prefetching, image rendering, etc., one of the key areas where it stands out from other similar tools is its GraphQL data layer. This feature is a large part of why some developers love Gatsby and why others choose to go in another direction. Being able to source data from multiple APIs, files, etc. and compile them altogether into a queryable GraphQL layer is ***amazing***, but many developers simply don't enjoy working with GraphQL. This is where GROQ comes in.
@@ -165,29 +157,6 @@ For Sanity users, if using the `->` operator you will need to append `._ref` to 
 
 ### Other usage with gatsby-source-sanity
 For every `_ref` field within your documents the source plugin injects the referenced document's GraphQL node id instead of its default `_id` value. This means that whenever you are trying to match `_ref` values to documents you need to use the `id` field instead of `_id`.
-
-So instead of what you are used to:
-```
-{
-  ...,
-  "document: *[ _id == ^._ref ] {
-    ...
-  }[0]
-}
-```
-You would use this:
-```
-{
-  ...,
-  "document: *[ id == ^._ref ] {
-    ...
-  }[0]
-}
-```
-If you are using the source plugin and running issues into issues with your joins, if all else fails try double checking your queries and make sure you are matching every `_ref` to the actual node `id`.
-
-### Usage with gatsby-source-sanity
-For every `_ref` field within your documents, the source plugin injects the referenced document's GraphQL node id instead of its default `_id` value. This means that whenever you are trying to match `_ref` values to documents you need to use the `id` field instead of `_id`.
 
 So instead of what you are used to:
 ```
