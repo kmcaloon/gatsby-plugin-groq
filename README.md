@@ -36,8 +36,14 @@ module.exports = {
       resolve: 'gatsby-plugin-groq',
       options: {
         // Location of your project's fragments index file.
-        // Only required if you are implementing fragments.
-        fragmentsDir: './src/fragments'
+        // Only required if you are implementing fragments. Defaults to `./src/fragments`.
+        fragmentsDir: './src/fragments',
+        // Determines which field to match when using joins. Defaults to `id`.
+        referenceMatcher: 'id',
+        // If only using Sanity documents, change this to true to use default method
+        // of joining documents without having to append ._ref to the referencing field.
+        // Defaults to false.
+        autoRefs: false,
       }
     }
   ]
