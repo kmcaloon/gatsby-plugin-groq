@@ -152,7 +152,7 @@ To use GROQ fragments with this plugin, for now all fragments must be exported f
 ### Joins <a name="joins"></a>
 The ability to join multiple documents and retrieve their fields is a popular feature of GROQ. More testing needs to be done, but currently most join syntaxes are supported other than the `references()` function.
 
-For Sanity users, if using the `->` operator you will need to append `._ref` to the field which contains the reference. So with a Sanity dataset, the usual
+For Sanity users, if using the `->` operator for everything other than file assets (i.e. images) you will need to append `._ref` to the field which contains the reference. So with a Sanity dataset, the usual
 `referenceField->{ ... }` would instead look like this: `referenceField._ref->{ ... }`. Likewise for arrays: `arrayOfReferences[]._ref->{ ... }`. If you are only using Sanity data within your Gatsby project and would like to use the regular syntax, within the plugin options set `autoRefs: true` and you won't have to worry about appending the extra field.  
 
 ### Other usage with gatsby-source-sanity
