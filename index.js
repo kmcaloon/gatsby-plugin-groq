@@ -103,26 +103,36 @@ function processJoins( query ) {
     const refOption = !! autoRefs ? '._ref' : '';
 
     const search = `\\S+->\\w*`;
-    const regex = /\S+->\w*/gm;
+    const regex = new RegExp( search, 'g' );
+    const matches = [ ... processedQuery.matchAll( regex ) ];
 
-    for( let match of regex.exec( processedQuery ) ) {
+    if( !! matches.length ) {
+      for( let match of matches ) {
 
-      let field = match.replace( '->', '' );
-      let replace = null;
+        const matchText = match[0];
 
-      // Single refs.
-      if( ! field.includes( '[]' ) ) {
-        replace = `*[ ${matchField} == ^.${field}${refOption} ][0]`;
+        // For now we're skipping Sanity .assets since they work by default.
+        if( matchText.includes( '.asset->' ) ) {
+          continue;
+        }
+
+        const field = matchText.replace( '->', '' );
+        let replace = null;
+
+        // Single refs.
+        if( ! field.includes( '[]' ) ) {
+          replace = `*[ ${matchField} == ^.${field}${refOption} ][0]`;
+        }
+        // Arrays.
+        else {
+          replace = `*[ ${matchField} in ^.${field}${refOption} ]`;
+        }
+
+        processedQuery = processedQuery.replace( matchText, replace );
+
       }
-      // Arrays.
-      else {
-        replace = `*[ ${matchField} in ^.${field}${refOption} ]`;
-      }
-
-      processedQuery = processedQuery.replace( match, replace );
 
     }
-
   }
 
   return processedQuery;
