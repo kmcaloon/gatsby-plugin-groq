@@ -1,4 +1,5 @@
 const groq = require( 'groq-js' );
+const matchAll = require( 'match-all' );
 const murmurhash = require( './murmur' );
 const path = require( 'path' );
 const { reporter } = require( './utils' );
@@ -104,7 +105,7 @@ function processJoins( query ) {
 
     const search = `\\S+->\\w*`;
     const regex = new RegExp( search, 'g' );
-    const matches = [ ... processedQuery.matchAll( regex ) ];
+    const matches = [ ... matchAll( processedQuery, regex ).toArray() ];
 
     if( !! matches.length ) {
       for( let match of matches ) {

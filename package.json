@@ -20,6 +20,7 @@
     "fs": "^0.0.1-security",
     "glob": "^7.1.6",
     "groq-js": "^0.1.5",
+    "match-all": "^1.2.5",
     "normalize-path": "^3.0.0"
   }
 }
