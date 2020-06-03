@@ -133,18 +133,24 @@ exports.resolvableExtensions = async ( { graphql, actions, cache, getNodes, trac
 
     // Run query and save to cache.
     // Files using the static query will be automatically refreshed.
-    const staticQuery = await processFileStaticQuery( filePath, nodes, cache );
+    const staticQueries = await processFileStaticQueries( filePath, nodes, cache );
 
-    if( !! staticQuery ) {
+    if( !! ( staticQueries || [] ).length ) {
 
-      const { hash, json } = staticQuery;
-      await cacheQueryResults( hash, json );
+      for( let { hash, json } of staticQueries ) {
 
-      return reporter.success( 'Finished re-processing queries' );
+        if( ! hash || ! json ) {
+          return reporter.warn( 'There was a problem processing one of your static queries' );
+        }
+
+        cacheQueryResults( hash, json );
+
+      }
 
     }
 
-    reporter.warn( 'There was a problem processing one of your static queries' );
+    return reporter.success( 'Finished re-processing queries' );
+
 
   } );
 
@@ -210,7 +216,7 @@ async function extractQueries( { nodes, traceId, cache } ) {
   for( let file of files ) {
 
     const pageQuery = await processFilePageQuery( file, nodes, cache );
-    const staticQuery = await processFileStaticQuery( file, nodes, cache );
+    const staticQueries = await processFileStaticQueries( file, nodes, cache );
 
     // Cache page query.
     // This will only contain a json file of unprocessed query.
@@ -219,23 +225,24 @@ async function extractQueries( { nodes, traceId, cache } ) {
       cacheQueryResults( fileHash, query );
     }
 
-    // Cache static query.
-    // This will contain actual results of the query.
-    if( !! staticQuery ) {
+    // Cache static queries.
+    // These will contain actual results of the query.
+    if( !! ( staticQueries || [] ).length ) {
 
-      if( staticQuery instanceof Error ) {
+      for( let { hash, json } of staticQueries ) {
 
-        return reporter.warn( 'There was an error processing static query' );
+        if( ! hash || ! json ) {
+          return reporter.warn( 'There was an error processing static query' );
+        }
+
+        cacheQueryResults( hash, json, 'static', );
 
       }
-      const { hash, json } = staticQuery;
-      cacheQueryResults( hash, json, 'static', );
-    }
 
+    }
   }
 
   reporter.success( 'Finished getting files for query extraction' );
-
 
 }
 
@@ -393,9 +400,9 @@ async function processFilePageQuery( file, nodes, cache ) {
  * @param   {string}  file
  * @param   {map}     nodes
  * @param   {Object}  cache
- * @return  {Object}  hash and query
+ * @return  {array}
  */
-async function processFileStaticQuery( file, nodes, cache  ) {
+async function processFileStaticQueries( file, nodes, cache  ) {
 
   const contents = fs.readFileSync( file, 'utf8' );
   const match = /useGroqQuery/.exec( contents );
@@ -408,7 +415,7 @@ async function processFileStaticQuery( file, nodes, cache  ) {
     return null;
   }
 
-  let staticQuery = null;
+  const staticQueries = [];
   let queryStart = null;
   let queryEnd = null;
 
@@ -419,27 +426,37 @@ async function processFileStaticQuery( file, nodes, cache  ) {
 
         queryStart = path.node.arguments[0].start + 1;
         queryEnd = path.node.arguments[0].end - 1;
-        staticQuery = contents.substring( queryStart, queryEnd );
+
+        staticQueries.push( contents.substring( queryStart, queryEnd ) );
 
       }
 
     }
   } );
 
-  if( ! staticQuery ) {
+  if( ! staticQueries.length ) {
     return null;
   }
 
   const fragments = await cache.get( 'groq-fragments' );
-  const { result, finalQuery } = await runQuery( staticQuery, nodes, { file, fragments } );
-  if( result instanceof Error ) {
-    return result;
+  const results = [];
+
+  for( let staticQuery of staticQueries ) {
+
+    const { result, finalQuery } = await runQuery( staticQuery, nodes, { file, fragments } );
+    if( result instanceof Error ) {
+      results.push( result );
+    }
+
+    const hash = hashQuery( finalQuery );
+    const json = JSON.stringify( result );
+
+    results.push( { hash, json } );
+
   }
 
-  const hash = hashQuery( finalQuery );
-  const json = JSON.stringify( result );
 
-  return { hash, json };
+  return results;
 
 }
 
