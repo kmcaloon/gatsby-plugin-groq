@@ -4,8 +4,10 @@ const murmurhash = require( './murmur' );
 const path = require( 'path' );
 const { reporter } = require( './utils' );
 
-const ROOT = path.resolve( __dirname, '../..' );
-const GROQ_DIR = process.env.NODE_ENV === 'development' ? `${ROOT}/.cache/groq` : `${ROOT}/public/static/groq`;
+const ROOT = path.resolve( __dirname, '..', '..' );
+const GROQ_DIR = process.env.NODE_ENV === 'development'
+                  ? path.resolve( ROOT, '.cache', 'groq' )
+                  : path.resolve( ROOT, 'public', 'static', 'groq' );
 
 
 /**
@@ -27,7 +29,7 @@ exports.useGroqQuery = query => {
 
   const hash = murmurhash( query );
 
-
+  // We have to use process.env here for clientside.
   try {
     const result = require( `${process.env.GROQ_DIR}/${hash}.json` );
     return result;
