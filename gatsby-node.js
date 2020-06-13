@@ -448,7 +448,7 @@ async function processFileStaticQueries( file, nodes, cache  ) {
       results.push( result );
     }
 
-    const hash = hashQuery( finalQuery );
+    const hash = hashQuery( staticQuery );
     const json = JSON.stringify( result );
 
     results.push( { hash, json } );
