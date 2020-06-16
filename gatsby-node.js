@@ -443,12 +443,12 @@ async function processFileStaticQueries( file, nodes, cache  ) {
 
   for( let staticQuery of staticQueries ) {
 
-    const { result, finalQuery } = await runQuery( staticQuery, nodes, { file, fragments } );
+    const { result, finalQuery, queryToHash } = await runQuery( staticQuery, nodes, { file, fragments } );
     if( result instanceof Error ) {
       results.push( result );
     }
 
-    const hash = hashQuery( staticQuery );
+    const hash = hashQuery( queryToHash );
     const json = JSON.stringify( result );
 
     results.push( { hash, json } );

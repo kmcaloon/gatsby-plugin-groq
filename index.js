@@ -27,7 +27,6 @@ exports.useGroqQuery = query => {
 
   const hash = murmurhash( query );
 
-
   try {
     const result = require( `${process.env.GROQ_DIR}/${hash}.json` );
     return result;
@@ -47,7 +46,7 @@ exports.useGroqQuery = query => {
  * @param   {Object}  options.fragments
  * @param   {Object}  options.params
  * @param   {string}  options.file      For debugging.
- * @return  {Object}  Array of results along with final query
+ * @return  {Object}  Array of results along with final query and query string to get hashed.
  */
 exports.runQuery = async ( rawQuery, dataset, options = {} ) => {
 
@@ -61,6 +60,8 @@ exports.runQuery = async ( rawQuery, dataset, options = {} ) => {
     query = processFragments( query, fragments );
   }
 
+  const queryToHash = query;
+
   query = processJoins( query );
 
   try {
@@ -70,7 +71,7 @@ exports.runQuery = async ( rawQuery, dataset, options = {} ) => {
     const value = await groq.evaluate( parsedQuery, { dataset } );
     const result = await value.get();
 
-    return { result, finalQuery: query }
+    return { result, finalQuery: query, queryToHash }
 
   }
   catch( err ) {
