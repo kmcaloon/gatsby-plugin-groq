@@ -38,8 +38,6 @@ exports.resolvableExtensions = async ( { graphql, actions, cache, getNodes, trac
 
   }
 
-
-
   // Cache fragments.
   const fragmentsDir = !! plugin.fragmentsDir ? path.join( ROOT, plugin.fragmentsDir ) : null;
 
