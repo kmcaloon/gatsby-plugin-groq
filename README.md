@@ -57,7 +57,7 @@ export const groqQuery = `
 ```
 4. To use a GROQ static query, use the `useGroqQuery` hook:
 ```
-import { useGroqQuery } from 'plugins/gatsby-plugin-groq';
+import { useGroqQuery } from 'gatsby-plugin-groq';
 
 export function() {
 
