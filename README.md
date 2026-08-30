@@ -1,3 +1,5 @@
+⚠️ ARCHIVED PROJECT: This repository is a legacy project and is no longer actively maintained.
+
 # gatbsy-plugin-groq
 
 **Gatsby plugin for using GROQ in place of GraphQL**
